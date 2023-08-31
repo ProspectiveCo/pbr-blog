@@ -1,0 +1,56 @@
+{
+  "sizes": [0.40060872528320446, 0.5993912747167955],
+  "detail": {
+    "main": {
+      "type": "tab-area",
+      "widgets": ["PERSPECTIVE_GENERATED_ID_1"],
+      "currentIndex": 0
+    }
+  },
+  "mode": "globalFilters",
+  "master": {
+    "widgets": ["PERSPECTIVE_GENERATED_ID_0"],
+    "sizes": [1]
+  },
+  "viewers": {
+    "PERSPECTIVE_GENERATED_ID_0": {
+      "plugin": "Datagrid",
+      "plugin_config": {
+        "columns": {},
+        "editable": false,
+        "scroll_lock": false
+      },
+      "settings": false,
+      "theme": "Pro Light",
+      "title": null,
+      "group_by": ["statistic.rider_name"],
+      "split_by": [],
+      "columns": ["rank"],
+      "filter": [],
+      "sort": [],
+      "expressions": [],
+      "aggregates": {},
+      "master": true,
+      "table": "{{baseUrl}}/data/riders/riders-normalized.arrow",
+      "linked": false,
+      "selectable": ""
+    },
+    "PERSPECTIVE_GENERATED_ID_1": {
+      "plugin": "Y Bar",
+      "plugin_config": {},
+      "settings": false,
+      "theme": "Pro Light",
+      "title": null,
+      "group_by": ["year"],
+      "split_by": [],
+      "columns": ["statistic.total_dollars"],
+      "filter": [["statistic.rider_name", "==", "Alisson De Souza"]],
+      "sort": [],
+      "expressions": [],
+      "aggregates": {},
+      "master": false,
+      "table": "{{baseUrl}}/data/riders/riders-normalized.arrow",
+      "linked": false
+    }
+  }
+}

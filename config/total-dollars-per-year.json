@@ -1,0 +1,28 @@
+{
+  "plugin": "X/Y Scatter",
+  "plugin_config": { "zoom": { "k": 1, "x": 0, "y": 0 } },
+  "settings": true,
+  "theme": "Pro Light",
+  "title": null,
+  "group_by": ["statistic.rider_name"],
+  "split_by": [],
+  "columns": [
+    "statistic.buck_offs",
+    "statistic.total_dollars",
+    "statistic.rider_rank",
+    "statistic.events_attended",
+    null,
+    "statistic.rider_name"
+  ],
+  "filter": [],
+  "sort": [],
+  "expressions": [
+    "// dollars / years\n\"statistic.total_dollars\" / \"rider.pbr_years_experience\""
+  ],
+  "aggregates": {
+    "statistic.rider_rank": "low",
+    "statistic.events_attended": "sum",
+    "statistic.total_dollars": "sum",
+    "statistic.rider_name": "dominant"
+  }
+}
