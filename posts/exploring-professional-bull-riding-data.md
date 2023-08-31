@@ -6,46 +6,18 @@ Prospective is a tool purpose-built for quickly exploring data, regardless of it
 
 In most sports, the rules and opportunities are designed to be the same for all participants. In field sports, each team is given the same amount of playing field, or in Baseball's case, given an equal chance to be on offense and defense. Professional Bull Riding is different. In Professional Bull Riding (PBR) the balance between riders and bulls is asymmetrical. Riders will always be on the defense, and the Bulls will always be on the offense. Both riders and bulls have careers, with proper statistics to track their performance.
 
-The [PBR site](https://pbr.com/) includes a statistics page, containing data for each rider and bull across many years. For our purposes, I've chosen to use rider data between the years 2013, and 2023. The data is in the form of JSON, with nested values. Nested values are not supported by [Perspective](https://perspective.finos.org/), so it is necessary to flatten the data. See [Preparing data to be used in Prospective](#preparing-data-to-be-used-in-prospective) for more information.
-
+The [PBR site](https://pbr.com/) includes a statistics page, containing data for each rider and bull across many years. For our purposes, I've chosen to use rider data between the years 2013, and 2023. The data is in the form of JSON, with nested values. Nested values are not supported by [Perspective](https://perspective.finos.org/), so it is necessary to flatten the data.
 ## Exploring the data
 
 ### Total dollars over buck-off (Does it pay to get back on the bull?)
 
 Let's examine if it "pays to get back on the bull". In other words, does the amount of money a rider makes correlate to the number of times they get bucked off? As a first step, let's make a scatter plot of the total dollars earned over the number of times a rider was bucked off. We will group by the rider name, place "total dollars" on the Y axis, "buck offs" on the X axis, "rider rank" as the color, and "events attended" as the size of the dot. For good measure, let's also add a tooltip of the rider's name.
 
-```json
-{
-  "plugin": "X/Y Scatter",
-  "plugin_config": { "zoom": { "k": 1, "x": 0, "y": 0 } },
-  "settings": true,
-  "theme": "Pro Light",
-  "title": null,
-  "group_by": ["statistic.rider_name"],
-  "split_by": [],
-  "columns": [
-    "statistic.buck_offs",
-    "statistic.total_dollars",
-    "statistic.rider_rank",
-    "statistic.events_attended",
-    null,
-    "statistic.rider_name"
-  ],
-  "filter": [],
-  "sort": [],
-  "expressions": [
-    "// dollars / years\n\"statistic.total_dollars\" / \"rider.pbr_years_experience\""
-  ],
-  "aggregates": {
-    "statistic.rider_rank": "low",
-    "statistic.events_attended": "sum",
-    "statistic.total_dollars": "sum",
-    "statistic.rider_name": "dominant"
-  }
-}
+```
+EXAMPLE: total-dollars-per-year.json
 ```
 
-On this graph, we can see there is a trend in both the number of buck-offs and the total dollars earned, but also in rider rank and events attended. This all makes sense, as the more events a rider attends, the more likely they are to get bucked off, and the more likely they are to earn money. To get a better picture of the data, let's normalize the data a bit by dividing the total dollars by the number of events attended. In [Perspective]() this is fairly easy to do with [Custom Columns](). Adding a custom column is easy; click the "New Column" button at the top of the columns section in the chart sidebar. Custom columns use a language called [ExprTK]() to create expressions. You can do a lot with ExprTK, but for now, we will just use it to create a new column showing the total dollars divided by the number of events attended. Click on the "New Column" button. An additional side panel will open up with a text box. In the text box, enter the following expression:
+On this graph, we can see there is a trend in both the number of buck-offs and the total dollars earned, but also in rider rank and events attended. This all makes sense, as the more events a rider attends, the more likely they are to get bucked off, and the more likely they are to earn money. To get a better picture of the data, let's normalize the data a bit by dividing the total dollars by the number of events attended. In [Perspective](https://perspective.finos.org/) this is fairly easy to do with [Expression Columns](https://perspective.finos.org/docs/expressions/). Adding a custom column is easy; click the "New Column" button at the top of the columns section in the chart sidebar. Custom columns use a language called [ExprTK](https://github.com/ArashPartow/exprtk) to create expressions. You can do a lot with ExprTK, but for now, we will just use it to create a new column showing the total dollars divided by the number of events attended. Click on the "New Column" button. An additional side panel will open up with a text box. In the text box, enter the following expression:
 
 ```
 // dollars per event
@@ -63,41 +35,13 @@ Let's make another custom column to display the inverse of “rank” so that th
 
 We'll move our "inverse rank" column to the Y axis, and set it to "avg". Now we get a better picture of how buck-offs relate to rank and dollars.
 
-```json
-{
-  "plugin": "X/Y Scatter",
-  "plugin_config": { "zoom": { "k": 1, "x": 0, "y": 0 } },
-  "settings": true,
-  "theme": "Pro Light",
-  "title": null,
-  "group_by": ["statistic.rider_name"],
-  "split_by": [],
-  "columns": [
-    "statistic.buck_offs",
-    "inverse rank",
-    "statistic.total_dollars",
-    "dollars per event",
-    null,
-    "statistic.rider_name"
-  ],
-  "filter": [],
-  "sort": [],
-  "expressions": [
-    "// dollars / years\n\"statistic.total_dollars\" / \"rider.pbr_years_experience\"",
-    "// dollars per event\n\"statistic.total_dollars\" / \"statistic.events_attended\"\n",
-    "// inverse rank\n\"statistic.rider_rank\" * -1\n"
-  ],
-  "aggregates": {
-    "inverse rank": "avg",
-    "statistic.total_dollars": "sum",
-    "statistic.rider_name": "dominant"
-  }
-}
+```
+EXAMPLE: buck-offs-relative-to-rank.json
 ```
 
 ## Viewing rider's stats over time
 
-One of the great features of Perspective is [Global Filters](). With Global Filters, we can select a row in one panel and change the filtering of a related chart in a different panel. To kick the tires on this feature, we'll create a means of viewing how much each rider has earned each year.
+One of the great features of Perspective is Global Filters. With Global Filters, we can select a row in one panel and change the filtering of a related chart in a different panel. To kick the tires on this feature, we'll create a means of viewing how much each rider has earned each year.
 
 First, let's create a data grid with our PBR dataset, grouped by rider. We can add/remove any additional columns we want to see while viewing the chart, as the data grid's columns will still be viewable. We will also add the rank column as a reference.
 
@@ -108,20 +52,7 @@ Now comes the magic: right-click the data grid and select `Create Global Filter`
 In the new panel, create a Y Bar chart, with data grouped by year, and the Y axis set to "total dollars". The "Where" field should already be populated with a rider's name. Now when you click on a row in the left panel, the right panel will update with the relevant information!
 
 ```json
-{
-  "plugin": "Y Bar",
-  "plugin_config": {},
-  "settings": true,
-  "theme": "Pro Light",
-  "title": null,
-  "group_by": ["year"],
-  "split_by": [],
-  "columns": ["statistic.total_dollars"],
-  "filter": [["statistic.rider_name", "==", "Beau Hill"]],
-  "sort": [],
-  "expressions": ["// inverse rank\n\"statistic.rider_rank\" * -1\n"],
-  "aggregates": {}
-}
+EXAMPLE: stats-over-time.json
 ```
 
 ## Final thoughts

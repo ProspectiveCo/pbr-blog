@@ -1,0 +1,144 @@
+<link rel="stylesheet" crossorigin="anonymous"
+  href="https://cdn.jsdelivr.net/npm/@finos/perspective-viewer/dist/css/pro.css" />
+<link rel="stylesheet" crossorigin="anonymous"
+  href="https://cdn.jsdelivr.net/npm/@finos/perspective-workspace/dist/css/pro.css" />
+<style>
+  .ws-horiz {
+    display: flex;
+    height: 500px;
+    resize: vertical;
+    overflow: hidden;
+    flex-wrap: wrap;
+  }
+
+  .ws-vert {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    resize: vertical;
+    overflow: hidden;
+  }
+
+  perspective-viewer {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  @keyframes pulse {
+    0% {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    100% {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .psp-stub {
+    animation: pulse 1s alternate infinite;
+    flex: 1;
+  }
+</style>
+<script type="module">
+  import perspective from "https://cdn.jsdelivr.net/npm/@finos/perspective@2.3.2/dist/cdn/perspective.js";
+  import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@2.3.2/dist/cdn/perspective-viewer.js";
+  import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc@2.3.2/dist/cdn/perspective-viewer-d3fc.js";
+  import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid@2.3.2/dist/cdn/perspective-viewer-datagrid.js";
+  import "https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-openlayers@2.3.2/dist/cdn/perspective-viewer-openlayers.js";
+  import "https://cdn.jsdelivr.net/npm/@finos/perspective-workspace/dist/cdn/perspective-workspace.js";
+
+  const worker = perspective.worker();
+  const baseUrl = "https://raw.githubusercontent.com/ProspectiveCo/pbr-blog/main";
+
+  const examples = [{
+    selector: "#ws1",
+    type: 'table',
+    dataUrl: `${baseUrl}/data/riders/riders-normalized.arrow`,
+    configUrl: `${baseUrl}/config/total-dollars-per-year.json`,
+  }, {
+    selector: "#ws2",
+    type: 'table',
+    dataUrl: `${baseUrl}/data/riders/riders-normalized.arrow`,
+    configUrl: `${baseUrl}/config/buck-offs-relative-to-rank.json`,
+  }, {
+    selector: "#ws3",
+    type: 'workspace',
+    dataUrl: `${baseUrl}/data/riders/riders-normalized.arrow`,
+    configUrl: `${baseUrl}/config/stats-over-time.json`,
+  }];
+
+  async function replaceParameters(text, params) {
+    const regex = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
+    return text.replace(regex, (match, param) => params[param]);
+  }
+
+  async function fetchConfig(configUrl) {
+    const configText = await fetch(configUrl).then(resp => resp.text());
+    const config = JSON.parse(await replaceParameters(configText, { baseUrl }));
+
+    return config;
+  }
+
+  async function fetchData(dataUrl) {
+    const resp = await fetch(dataUrl)
+    const data = resp.arrayBuffer();
+
+    return data;
+  }
+
+  async function loadTable(target, { dataUrl, configUrl }) {
+    const config = await fetchConfig(configUrl);
+    const data = await fetchData(dataUrl);
+    const table = await worker.table(data);
+
+    const viewer = document.createElement("perspective-viewer");
+
+    viewer.load(table);
+    await viewer.restore(config);
+
+    target.appendChild(viewer);
+  }
+
+  async function loadWorkspace(target, { dataUrl, configUrl }) {
+    const workspace = document.createElement("perspective-workspace");
+    target.appendChild(workspace);
+
+    const layout = await fetchConfig(configUrl);
+    const data = await fetchData(dataUrl);
+    const table = await worker.table(data);
+
+    workspace.tables.set(dataUrl, table);
+
+    await workspace.restore(layout);
+  }
+
+  const loaders = {
+    table: loadTable,
+    workspace: loadWorkspace
+  }
+
+  async function loadExample(config) {
+    const observer = new IntersectionObserver((entries, observer) => {
+
+      entries.forEach(async entry => {
+        if (entry.isIntersecting) {
+          await loaders[config.type](entry.target, config);
+
+          entry.target.classList.remove("psp-stub");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    let el = document.querySelector(config.selector);
+    el.classList.add("psp-stub");
+
+    observer.observe(el);
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    for (let example of examples) {
+      await loadExample(example);
+    }
+  });
+</script>

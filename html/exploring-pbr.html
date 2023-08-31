@@ -397,8 +397,7 @@ a,
                 import "https://cdn.jsdelivr.net/npm/@finos/perspective-workspace/dist/cdn/perspective-workspace.js";
 
                 const worker = perspective.worker();
-                const baseUrl = "http://localhost:3000";
-                // const baseUrl = "https://raw.githubusercontent.com/ProspectiveCo/pbr-blog/main";
+                const baseUrl = "https://raw.githubusercontent.com/ProspectiveCo/pbr-blog/main";
 
                 const examples = [{
                   selector: "#ws1",
@@ -478,7 +477,7 @@ a,
                         observer.unobserve(entry.target);
                       }
                     });
-                  }, { threshold: 0.5 });
+                  }, { threshold: 0.1 });
 
                   let el = document.querySelector(config.selector);
                   el.classList.add("psp-stub");
